@@ -2,6 +2,8 @@
 
 Cross-platform PowerShell 7+ module that collects system information and returns structured objects easily convertible to JSON.
 
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PS-SysInfo)](https://www.powershellgallery.com/packages/PS-SysInfo)
+
 ## Install
 
 ```powershell
