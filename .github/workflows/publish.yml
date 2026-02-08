@@ -1,0 +1,47 @@
+name: Publish to PSGallery
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish Module
+    runs-on: ubuntu-latest
+    # Only publish from releases targeting main
+    if: github.event.release.target_commitish == 'main'
+    environment: publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag matches manifest version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}" -replace '^v', ''
+          $manifest = Test-ModuleManifest -Path ./PS-SysInfo.psd1
+          if ($manifest.Version.ToString() -ne $tag) {
+            Write-Error "Tag '$tag' does not match manifest version '$($manifest.Version)'. Update PS-SysInfo.psd1 first."
+            exit 1
+          }
+          Write-Host "Version match confirmed: $tag"
+
+      - name: Run tests before publish
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -RequiredVersion 5.7.1 -Force -Scope CurrentUser -SkipPublisherCheck
+          Import-Module Pester -RequiredVersion 5.7.1
+          $config = & './.pester.ps1'
+          Invoke-Pester -Configuration $config
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          Publish-Module -Path . -NuGetApiKey $env:NUGET_API_KEY -Verbose
+

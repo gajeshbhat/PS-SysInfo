@@ -1,0 +1,21 @@
+# Test results
+Tests/TestResults.xml
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# PowerShell
+*.psm1.bak
+*.psd1.bak
+
+# Build artifacts
+output/
+publish/
+
