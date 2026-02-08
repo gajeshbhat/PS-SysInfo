@@ -27,8 +27,7 @@ function Get-NetworkInfo {
                 }
             }
         }
-        { $_ -in 'Linux', 'macOS' } {
-            # Use ip or ifconfig
+        'Linux' {
             $adapters = @()
             $ipOutput = ip -o addr show 2>/dev/null
             if ($ipOutput) {
@@ -54,6 +53,59 @@ function Get-NetworkInfo {
                         MacAddress = $mac
                         IPv4       = @($grouped[$iface].IPv4)
                         IPv6       = @($grouped[$iface].IPv6)
+                        Status     = 'Up'
+                    }
+                }
+            }
+            if ($adapters.Count -eq 0) {
+                $adapters += [PSCustomObject]@{
+                    Name = 'Unknown'; MacAddress = ''; IPv4 = @(); IPv6 = @(); Status = 'Unknown'
+                }
+            }
+            $adapters
+        }
+        'macOS' {
+            $adapters = @()
+            $ifconfigOutput = ifconfig 2>/dev/null
+            if ($ifconfigOutput) {
+                $currentIface = $null
+                $currentMac = ''
+                $currentIPv4 = @()
+                $currentIPv6 = @()
+                foreach ($line in $ifconfigOutput) {
+                    if ($line -match '^(\S+):\s+flags=') {
+                        # Save previous interface
+                        if ($currentIface -and $currentIface -ne 'lo0') {
+                            $adapters += [PSCustomObject]@{
+                                Name       = $currentIface
+                                MacAddress = $currentMac
+                                IPv4       = @($currentIPv4)
+                                IPv6       = @($currentIPv6)
+                                Status     = 'Up'
+                            }
+                        }
+                        $currentIface = $Matches[1]
+                        $currentMac = ''
+                        $currentIPv4 = @()
+                        $currentIPv6 = @()
+                    }
+                    elseif ($line -match '\s+ether\s+([\w:]+)') {
+                        $currentMac = $Matches[1]
+                    }
+                    elseif ($line -match '\s+inet\s+(\d+\.\d+\.\d+\.\d+)') {
+                        $currentIPv4 += $Matches[1]
+                    }
+                    elseif ($line -match '\s+inet6\s+([^\s%]+)') {
+                        $currentIPv6 += $Matches[1]
+                    }
+                }
+                # Save last interface
+                if ($currentIface -and $currentIface -ne 'lo0') {
+                    $adapters += [PSCustomObject]@{
+                        Name       = $currentIface
+                        MacAddress = $currentMac
+                        IPv4       = @($currentIPv4)
+                        IPv6       = @($currentIPv6)
                         Status     = 'Up'
                     }
                 }
