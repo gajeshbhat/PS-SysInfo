@@ -27,7 +27,7 @@ Describe 'Get-NetworkInfo' {
         }
     }
 
-    Context 'Mocked as Linux' {
+    Context 'Mocked as Linux' -Skip:(-not $IsLinux) {
         BeforeAll {
             Mock Get-PlatformType { return 'Linux' }
         }

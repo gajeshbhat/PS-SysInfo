@@ -21,7 +21,7 @@ Describe 'Get-InstalledSoftware' {
         }
     }
 
-    Context 'Mocked as Linux with dpkg' {
+    Context 'Mocked as Linux with dpkg' -Skip:(-not $IsLinux) {
         BeforeAll {
             Mock Get-PlatformType { return 'Linux' }
             Mock Invoke-PlatformCommand {

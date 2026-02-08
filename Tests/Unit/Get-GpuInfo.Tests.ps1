@@ -21,7 +21,7 @@ Describe 'Get-GpuInfo' {
         }
     }
 
-    Context 'Mocked as Linux with lspci' {
+    Context 'Mocked as Linux with lspci' -Skip:(-not $IsLinux) {
         BeforeAll {
             Mock Get-PlatformType { return 'Linux' }
             Mock Invoke-PlatformCommand {
@@ -41,7 +41,7 @@ Describe 'Get-GpuInfo' {
         }
     }
 
-    Context 'No GPU detected' {
+    Context 'No GPU detected' -Skip:(-not $IsLinux) {
         BeforeAll {
             Mock Get-PlatformType { return 'Linux' }
             Mock Invoke-PlatformCommand { return $null }
